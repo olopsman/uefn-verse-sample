@@ -26,7 +26,13 @@ tagged_lights_device := class(creative_device):
     @editable
     Buttons : []button_device = array{}
 
+    @editable
+    ItemSpawner : item_spawner_device = item_spawner_device{}
+
     ButtonsToLights : [][]int = array{array{0,3}, array{0, 1, 2}, array{0, 1}, array{1} }
+
+    @editable
+    var SolvedLightsState : []logic = array{true, true, true, true}
 
     # method to setup the puzzle
     SetupPuzzleLights() :  void =
@@ -53,11 +59,11 @@ tagged_lights_device := class(creative_device):
         for:
             LightIndex : LightIndices
             Light := Lights[LightIndex]
-            isLightOn := LightsState[LightIndex]
+            IsLightOn := LightsState[LightIndex]
         do:
-            Print("Toggling light at index {LightIndex} {if (isLightOn?) then "Off" else "On"}")       
+            Print("Toggling light at index {LightIndex} {if (IsLightOn?) then "Off" else "On"}")       
             NewLightState :=
-                if (isLightOn?):
+                if (IsLightOn?):
                     Light.TurnOff()
                     false
                 else:
@@ -65,6 +71,21 @@ tagged_lights_device := class(creative_device):
                     true
             if(set LightsState[LightIndex] = NewLightState) : 
                 Print("updated the state for light at {LightIndex}")
+
+        if (IsPuzzleSolved[]):
+            Print("Puzzle solved")
+            ItemSpawner.Enable()
+
+    IsPuzzleSolved()<decides><transacts> : void =
+      
+        for:
+            LightIndex -> IsLightOn : LightsState
+            IsLightOnInSolution := SolvedLightsState[LightIndex]
+        do:
+            IsLightOn = IsLightOnInSolution
+        
+        # Print("Checking if puzzle is solved")
+        
     # Runs when the device is started in a running game
     OnBegin<override>()<suspends>:void=
         # TODO: Replace this with your code
