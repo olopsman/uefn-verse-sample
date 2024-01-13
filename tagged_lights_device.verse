@@ -31,6 +31,8 @@ tagged_lights_device := class(creative_device):
 
     ButtonsToLights : [][]int = array{array{0,3}, array{0, 1, 2}, array{0, 1}, array{1} }
 
+    var ButtonSubscriptions : []cancelable = array{}
+
     @editable
     var SolvedLightsState : []logic = array{true, true, true, true}
 
@@ -76,6 +78,9 @@ tagged_lights_device := class(creative_device):
             Print("Puzzle solved")
             ItemSpawner.Enable()
 
+            for (ButtonSubscription : ButtonSubscriptions):
+                ButtonSubscription.Cancel()
+
     IsPuzzleSolved()<decides><transacts> : void =
       
         for:
@@ -91,7 +96,7 @@ tagged_lights_device := class(creative_device):
         # TODO: Replace this with your code
         SetupPuzzleLights()
 
-        for:
+        set ButtonSubscriptions = for:
             ButtonIndex -> Button : Buttons
             LightIndices := ButtonsToLights[ButtonIndex]
         do:
