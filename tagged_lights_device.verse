@@ -23,12 +23,72 @@ tagged_lights_device := class(creative_device):
     @editable
     var Lights : []customizable_light_device = array{}
 
+    @editable
+    Buttons : []button_device = array{}
+
+    ButtonsToLights : [][]int = array{array{0,3}, array{0, 1, 2}, array{0, 1}, array{1} }
+
     # method to setup the puzzle
     SetupPuzzleLights() :  void =
-        Logger.Print("Setting up puzzle lights")
+        # find all devices tagged with puzzle light tag and save them in an array named TaggedActors(inferred)
+        TaggedActors := GetCreativeObjectsWithTag(puzzle_light{})
+        <#
+        For each device with the puzzle_light tag, check if it's a customizable_light_device by trying to cast it to that type.
+        If it is, get its initial LightState to TurnOn() or TurnOff() the LightDevice.
+        Save all the tagged customizable_light_device in the Lights array.
+        #>
+        set Lights = for:
+            ActorIndex -> TaggedActor : TaggedActors
+            # cast the actor to a customizable light device
+            LightDevice := customizable_light_device[TaggedActor]
+            ShouldLightBeOn := LightsState[ActorIndex]
+        do:
+            Print("Adding light at index {ActorIndex} to Lights array with State: {if (ShouldLightBeOn?) then "On" else "Off"}")
+            if (ShouldLightBeOn?) then LightDevice.TurnOn() else LightDevice.TurnOff()
+            LightDevice
+           
 
+    ToggleLights(LightIndices : []int) : void =
+        # for each light index in the array, toggle the light
+        for:
+            LightIndex : LightIndices
+            Light := Lights[LightIndex]
+            isLightOn := LightsState[LightIndex]
+        do:
+            Print("Toggling light at index {LightIndex} {if (isLightOn?) then "Off" else "On"}")       
+            NewLightState :=
+                if (isLightOn?):
+                    Light.TurnOff()
+                    false
+                else:
+                    Light.TurnOn()
+                    true
+            if(set LightsState[LightIndex] = NewLightState) : 
+                Print("updated the state for light at {LightIndex}")
     # Runs when the device is started in a running game
     OnBegin<override>()<suspends>:void=
         # TODO: Replace this with your code
-        Print("Hello, world!")
-        Print("2 + 2 = {2 + 2}")
+        SetupPuzzleLights()
+
+        for:
+            ButtonIndex -> Button : Buttons
+            LightIndices := ButtonsToLights[ButtonIndex]
+        do:
+#            button_event_handler{Indices := LightIndices, PuzzleDevice := Self}
+            Button.InteractedWithEvent.Subscribe(button_event_handler{Indices := LightIndices, PuzzleDevice := Self}.OnButtonPressed)
+
+
+
+        # Use the first element of ButtonsToLights to test the method ToggleLights
+        if (LightIndices : []int = ButtonsToLights[0]) :
+            ToggleLights(LightIndices)
+
+button_event_handler := class():
+    # Positions used to access the lights this button controls.
+    Indices : []int
+    # tagged_lights_puzzle that created this button_event_handler so we can call functions on it.
+    PuzzleDevice : tagged_lights_device
+
+    OnButtonPressed(InPlayer: agent) : void =
+        # Tell the PuzzleDevice to toggle the lights at the positions this button controls.
+        PuzzleDevice.ToggleLights(Indices)
