@@ -24,41 +24,37 @@ hello_world_device := class(creative_device):
     # method
     OnButtonInteractedWith(InAgent: agent): void =
         Print("Player interacted with button")
-        HurtPlayer()
+        HurtPlayer(80.0)
         Print("Player hurt")
-        HealPlayer()
+        HealPlayer(20.0)
         Print("Player healed")
 
 
-    HurtPlayer(): void = 
+    HurtPlayer(DamageAmount: float): void = 
         # damages the playercharacter by 50
         Playspace: fort_playspace = GetPlayspace()
         AllPlayers: []player =  Playspace.GetPlayers()
         if (FirstPlayer: player = AllPlayers[0]) :
             if (FortniteCharacter: fort_character = FirstPlayer.GetFortCharacter[]) :
-                DamageTodo: float = CalculateDamage()
+                MyCharacterHealth: float = FortniteCharacter.GetHealth()
+                DamageTodo: float = CalculateDamage(MyCharacterHealth, DamageAmount, 1.0)
                 Print("Damage to do: {DamageTodo}")
                 FortniteCharacter.Damage(DamageTodo)
 
     # HealPlayer method
-    HealPlayer(): void = 
+    HealPlayer(HealAmount: float): void = 
         # heals the playercharacter by 50
         Playspace: fort_playspace = GetPlayspace()
         AllPlayers: []player =  Playspace.GetPlayers()
         if (FirstPlayer: player = AllPlayers[0]) :
             if (FortniteCharacter: fort_character = FirstPlayer.GetFortCharacter[]) :
-                HealTodo: float = CalculateDamage()
-                Print("Heal to do: {HealTodo}")
-                FortniteCharacter.Heal(HealTodo)
+                FortniteCharacter.Heal(HealAmount)
 
     # Calculate damage
-    CalculateDamage(): float =
-        MinHealth: float = 1.0
-        PotionDamageAmount: float = 80.0
-        var PlayerHealth: float = 100.0
+    CalculateDamage(PlayerHealth: float, DesiredDamageAmount: float, MinHealth: float): float =
          # If the damage amount would not eliminate the player, do that amount of damage
-        if (PlayerHealth > PotionDamageAmount) :
-             return PotionDamageAmount
+        if (PlayerHealth > DesiredDamageAmount) :
+             return DesiredDamageAmount
         else if (PlayerHealth > MinHealth):
             return PlayerHealth - MinHealth
         else :
