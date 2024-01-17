@@ -36,7 +36,9 @@ hello_world_device := class(creative_device):
         AllPlayers: []player =  Playspace.GetPlayers()
         if (FirstPlayer: player = AllPlayers[0]) :
             if (FortniteCharacter: fort_character = FirstPlayer.GetFortCharacter[]) :
-                FortniteCharacter.Damage(50.0)
+                DamageTodo: float = CalculateDamage()
+                Print("Damage to do: {DamageTodo}")
+                FortniteCharacter.Damage(DamageTodo)
 
     # HealPlayer method
     HealPlayer(): void = 
@@ -45,4 +47,19 @@ hello_world_device := class(creative_device):
         AllPlayers: []player =  Playspace.GetPlayers()
         if (FirstPlayer: player = AllPlayers[0]) :
             if (FortniteCharacter: fort_character = FirstPlayer.GetFortCharacter[]) :
-                FortniteCharacter.Heal(50.0)
+                HealTodo: float = CalculateDamage()
+                Print("Heal to do: {HealTodo}")
+                FortniteCharacter.Heal(HealTodo)
+
+    # Calculate damage
+    CalculateDamage(): float =
+        MinHealth: float = 1.0
+        PotionDamageAmount: float = 80.0
+        var PlayerHealth: float = 100.0
+         # If the damage amount would not eliminate the player, do that amount of damage
+        if (PlayerHealth > PotionDamageAmount) :
+             return PotionDamageAmount
+        else if (PlayerHealth > MinHealth):
+            return PlayerHealth - MinHealth
+        else :
+            return PlayerHealth
